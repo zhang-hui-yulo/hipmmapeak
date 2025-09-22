@@ -1,114 +1,58 @@
-\# HIPMMAPEAK - HIP Matrix Multiply Performance Benchmark
+# HIPMMAPEAK - HIP Matrix Multiply Performance Benchmark
 
+HIPMMAPEAK is a HIP-based benchmarking tool designed to measure the peak performance of matrix multiplication operations across various data types and tensor core configurations on AMD GPUs.
 
-
-HIPMMAPEAK is a HIP-based benchmarking tool designed to measure the peak performance of matrix multiplication operations across various data types and tensor core configurations on NVIDIA GPUs.
-
-
-
-\## Overview
-
-
+## Overview
 
 This tool measures the throughput of AMD's Tensor Core dense operations using different precision formats:
+- 4-bit integer (Int4)
+- 8-bit integer (INT8)
+- 8-bit floating point (FP8)
+- 16-bit floating point (FP16, BF16)
 
-\- 4-bit integer (Int4)
+## Building
 
-\- 8-bit integer (INT8)
+### Using CMake
 
-\- 8-bit floating point (FP8)
-
-\- 16-bit floating point (FP16, BF16)
-
-
-
-\## Building
-
-
-
-\### Using CMake
-
-
-
-\#### For Windows
-
-
+#### For Windows
 
 ```bash
-
 set PATH=%HIP\_PATH%bin;%PATH%
-
 cmake -G Ninja -S . -B build -DCMAKE\_BUILD\_TYPE=Release
-
 cmake --build build
-
 ```
 
-
-
-\#### For Linux
-
-
+#### For Linux
 
 ```bash
-
 cmake -S . -B build -DCMAKE\_BUILD\_TYPE=Release
-
 cmake --build build
-
 ```
 
-
-
-
-
-\#### Note
-
-
+#### Note
 
 Please use ROCm Toolkit version 6.4.2 (or later).
 
-
-
-
-
-\## Usage
-
-
+## Usage
 
 ```bash
-
-./hipmmapeak \[options]
-
+./hipmmapeak [options]
 ```
 
+### Options
 
+- `-t <seconds>`: Set target time for benchmarks in seconds (default: 3.0)
+- `-h, --help`: Show help message
 
-\### Options
-
-
-
-\- `-t <seconds>`: Set target time for benchmarks in seconds (default: 3.0)
-
-\- `-h, --help`: Show help message
-
-
-
-\## Compatibility
-
-
+## Compatibility
 
 MMA operations that are not supported on your hardware will display "not supported".
 
+## Architecture Support
 
+- RDNA4 (9070XT, etc.): gfx12 family
+- RDNA3 (7900XTX, etc.): gfx11 family
 
-\## Architecture Support
+## License
 
-
-
-\- RDNA4 (9070XT, etc.): gfx12 family
-
-\- RDNA3 (7900XTX, etc.): gfx11 family
-
-
-
+This project is provided as-is.
