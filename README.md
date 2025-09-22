@@ -25,7 +25,7 @@ cmake --build build
 #### For Linux
 
 ```bash
-cmake -S . -B build -DCMAKE\_BUILD\_TYPE=Release
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ```
 
