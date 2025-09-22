@@ -17,7 +17,7 @@ This tool measures the throughput of AMD's Tensor Core dense operations using di
 #### For Windows
 
 ```bash
-set PATH=%HIP\_PATH%bin;%PATH%
+set PATH=%HIP_PATH%bin;%PATH%
 cmake -G Ninja -S . -B build -DCMAKE_BUILD_TYPE=Release -DMMA_HIP_ARCHITECTURES=gfx1100;gfx1201;gfx1036
 cmake --build build -j
 ```
