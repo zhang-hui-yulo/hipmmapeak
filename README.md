@@ -1,1 +1,114 @@
-# hipmmapeak
+\# HIPMMAPEAK - HIP Matrix Multiply Performance Benchmark
+
+
+
+HIPMMAPEAK is a HIP-based benchmarking tool designed to measure the peak performance of matrix multiplication operations across various data types and tensor core configurations on NVIDIA GPUs.
+
+
+
+\## Overview
+
+
+
+This tool measures the throughput of AMD's Tensor Core dense operations using different precision formats:
+
+\- 4-bit integer (Int4)
+
+\- 8-bit integer (INT8)
+
+\- 8-bit floating point (FP8)
+
+\- 16-bit floating point (FP16, BF16)
+
+
+
+\## Building
+
+
+
+\### Using CMake
+
+
+
+\#### For Windows
+
+
+
+```bash
+
+set PATH=%HIP\_PATH%bin;%PATH%
+
+cmake -G Ninja -S . -B build -DCMAKE\_BUILD\_TYPE=Release
+
+cmake --build build
+
+```
+
+
+
+\#### For Linux
+
+
+
+```bash
+
+cmake -S . -B build -DCMAKE\_BUILD\_TYPE=Release
+
+cmake --build build
+
+```
+
+
+
+
+
+\#### Note
+
+
+
+Please use ROCm Toolkit version 6.4.2 (or later).
+
+
+
+
+
+\## Usage
+
+
+
+```bash
+
+./hipmmapeak \[options]
+
+```
+
+
+
+\### Options
+
+
+
+\- `-t <seconds>`: Set target time for benchmarks in seconds (default: 3.0)
+
+\- `-h, --help`: Show help message
+
+
+
+\## Compatibility
+
+
+
+MMA operations that are not supported on your hardware will display "not supported".
+
+
+
+\## Architecture Support
+
+
+
+\- RDNA4 (9070XT, etc.): gfx12 family
+
+\- RDNA3 (7900XTX, etc.): gfx11 family
+
+
+
