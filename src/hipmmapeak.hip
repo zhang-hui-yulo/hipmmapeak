@@ -1,78 +1,115 @@
 #include <sstream>
 #include <unordered_set>
 #include <hip/hip_runtime.h>
+#include <thrust/host_vector.h>
+#include <thrust/device_vector.h>
 #include "gfx11.h"
 #include "gfx12.h"
 
 
-#define hipCheckError() hipCheckError_(__FILE__, __LINE__)
-inline void hipCheckError_(const char* file, int line) {
-    hipError_t err = hipGetLastError();
-    if (err != hipSuccess) {
-        printf("%s in %s at line %d\n", hipGetErrorString(err), file, line);
-        exit(EXIT_FAILURE);
+/**
+ * \brief Perror macro with exit
+ */
+#if !defined(PEAK_ERROR_EXIT)
+#  define PEAK_ERROR_EXIT(e)                                         \
+      do {                                                           \
+        hipError_t code = (e);                                      \
+        if (code != hipSuccess) {                                   \
+          fprintf(stderr, "<%s:%d> %s:\n    %s: %s\n",               \
+                  __FILE__, __LINE__, #e,                            \
+                  hipGetErrorName(code), hipGetErrorString(code)); \
+          fflush(stderr);                                            \
+          exit(1);                                                   \
+        }                                                            \
+      } while (0)
+#endif
+
+#if !defined(PEAK_CHECK_LAST)
+#  define PEAK_CHECK_LAST() PEAK_ERROR_EXIT(hipPeekAtLastError()); PEAK_ERROR_EXIT(hipDeviceSynchronize())
+#endif
+
+#if !defined(PEAK_CHECK_ERROR)
+#  define PEAK_CHECK_ERROR(e) PEAK_ERROR_EXIT(e)
+#endif
+
+
+class GPUTimer {
+public:
+    GPUTimer() {
+        PEAK_CHECK_ERROR(hipEventCreate(&_start));
+        PEAK_CHECK_ERROR(hipEventCreate(&_stop));
     }
-}
+
+    ~GPUTimer() {
+        if (_start) {
+            PEAK_CHECK_ERROR(hipEventDestroy(_start));
+        }
+
+        if (_stop) {
+            PEAK_CHECK_ERROR(hipEventDestroy(_stop));
+        }
+    }
+
+    void start() {
+        PEAK_CHECK_ERROR(hipEventRecord(_start));
+    }
+
+    void stop() {
+        PEAK_CHECK_ERROR(hipEventRecord(_stop));
+        PEAK_CHECK_ERROR(hipEventSynchronize(_stop));
+    }
+
+    float elapsed() const {
+        float ms = 0;
+        PEAK_CHECK_ERROR(hipEventElapsedTime(&ms, _start, _stop));
+        return ms;
+    }
+
+private:
+    hipEvent_t _start = nullptr;
+    hipEvent_t _stop = nullptr;
+};
 
 template <typename OutputType, unsigned M, unsigned N, unsigned K>
 void run(void* kernel, float targetTime) {
-    const int num_tb = 512;
-    const int num_warps_per_tb = 4;
-    const int warp_size = 32;
+    constexpr int num_tb = 512;
+    constexpr int num_warps_per_tb = 4;
+    constexpr int warp_size = 32;
     dim3 grid(num_tb);
     dim3 block(warp_size, num_warps_per_tb);
-    hipStream_t stream;
-    hipStreamCreate(&stream);
-    hipCheckError();
-    hipEvent_t start, stop;
-    hipEventCreate(&start);
-    hipEventCreate(&stop);
-    hipCheckError();
-    void* data = nullptr;
-    size_t nbytes = num_warps_per_tb * M * N * sizeof(OutputType);
-    hipMalloc(&data, nbytes);
-    hipCheckError();
+    
+    thrust::device_vector<OutputType> output(num_warps_per_tb * M * N);
+    thrust::device_vector<int> d_rc(1, 0);
+    ((void (*)(void*, int*))kernel) <<< grid, block >>> (output.data().get(), d_rc.data().get());
+    thrust::host_vector<int> h_rc(1, 0);
 
-    int* d_rc = nullptr;
-    hipMalloc(&d_rc, sizeof(int));
-    ((void (*)(void*, int*))kernel) <<< grid, block, 0, stream >>> (data, d_rc);
-    int h_rc = 0;
-    hipMemcpy(&h_rc, d_rc, sizeof(int), hipMemcpyDeviceToHost);
-    if (h_rc != 0) {
+    if (h_rc[0] != 0) {
         printf("not supported\n");
     } else {
+        GPUTimer timer;
         int n_loop = N_LOOP_CALIB;
-        hipCheckError();
-        hipEventRecord(start, stream);
+        
+        timer.start();
         for (int i = 0; i < n_loop; i++) {
-            ((void (*)(void*, int*))kernel) <<< grid, block, 0, stream >>> (data, d_rc);
+            ((void (*)(void*, int*))kernel) <<< grid, block >>> (output.data().get(), d_rc.data().get());
         }
-        hipCheckError();
-        hipEventRecord(stop, stream);
-        hipEventSynchronize(stop);
-        float ms = 0;
-        hipEventElapsedTime(&ms, start, stop);
+        timer.stop();
+        float ms = timer.elapsed();
 
         n_loop = (int)(targetTime * 1000 / ms * n_loop);
         n_loop = n_loop > 0 ? n_loop : N_LOOP_CALIB;
 
-        hipEventRecord(start, stream);
+        timer.start();
         for (int i = 0; i < n_loop; i++)
         {
-            ((void (*)(void*, int*))kernel) <<< grid, block, 0, stream >>> (data, d_rc);
+            ((void (*)(void*, int*))kernel) <<< grid, block >>> (output.data().get(), d_rc.data().get());
         }
-        hipCheckError();
-        hipEventRecord(stop, stream);
-        hipEventSynchronize(stop);
-        hipStreamDestroy(stream);
-        hipCheckError();
-        hipEventElapsedTime(&ms, start, stop);
+        timer.stop();
+        ms = timer.elapsed();
+
         float ops = 1.0f * num_tb * num_warps_per_tb * n_loop * N_LOOP_INTERNAL * M * N * K * 2;
         printf("%s: %.1f ms %.1f T(fl)ops\n", __func__, ms, ops / ms / 1.0e9f);
     }
-    hipFree(d_rc);
-    hipFree(data);
-    hipCheckError();
 }
 
 void print_usage() {
@@ -105,8 +142,7 @@ int main(int argc, char** argv) {
     }
 
     int deviceCount = 0;
-    hipGetDeviceCount(&deviceCount);
-    hipCheckError();
+    PEAK_CHECK_ERROR(hipGetDeviceCount(&deviceCount));
     if (deviceCount == 0) {
         printf("No ROCm devices found\n");
         return 1;
@@ -125,16 +161,15 @@ int main(int argc, char** argv) {
         printf("----------------------------------------\n");
 
         hipDeviceProp_t prop{};
-        hipGetDeviceProperties(&prop, i);
-        hipCheckError();
+        PEAK_CHECK_ERROR(hipGetDeviceProperties(&prop, i));
+
         printf("Device %d: %s\n", i, prop.name);
         printf("  Compute capability: %d.%d\n", prop.major, prop.minor);
         printf("  Total global memory: %.1f GiB\n", prop.totalGlobalMem / (1024.0 * 1024.0 * 1024.0));
         printf("  Multiprocessor count: %d\n", prop.multiProcessorCount);
 
         if (arch_table.count(prop.gcnArchName)) {
-            hipSetDevice(i);
-            hipCheckError();
+            PEAK_CHECK_ERROR(hipSetDevice(i));
 
             printf("Running benchmarks with target time: %.1f seconds\n", targetTime);
 
@@ -160,7 +195,7 @@ int main(int argc, char** argv) {
             printf("mma_i32i8_16_16_16_gfx11\n");
             run<float, 16, 16, 16>((void*)mma_i32i8_16_16_16_gfx11, targetTime);
         } else {
-            printf("No GPU binary for %s, please compile this architecture.", prop.gcnArchName);
+            printf("No GPU binary for %s, please add this architecture into REQUIRED_HIP_ARCHITECTURES.", prop.gcnArchName);
         }
     }
     return 0;
