@@ -18,14 +18,14 @@ This tool measures the throughput of AMD's Tensor Core dense operations using di
 
 ```bash
 set PATH=%HIP_PATH%bin;%PATH%
-cmake -G Ninja -S . -B build -DCMAKE_BUILD_TYPE=Release -DMMA_HIP_ARCHITECTURES=gfx1100;gfx1201;gfx1036
+cmake -G Ninja -S . -B build -DCMAKE_BUILD_TYPE=Release -DMMA_HIP_ARCHITECTURES=gfx1100;gfx1201
 cmake --build build -j
 ```
 
 #### For Linux
 
 ```bash
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DMMA_HIP_ARCHITECTURES=gfx1100;gfx1201;gfx1036
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DMMA_HIP_ARCHITECTURES=gfx1100;gfx1201
 cmake --build build -j
 ```
 
@@ -36,7 +36,7 @@ Please use ROCm Toolkit version 6.4.2 (or later).
 ## Usage
 
 ```bash
-./hipmmapeak [options]
+./build/hipmmapeak [options]
 ```
 
 ### Options

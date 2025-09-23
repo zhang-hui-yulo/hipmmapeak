@@ -20,7 +20,6 @@ using fp8_t_8 = __hip_fp8_storage_t __attribute__((ext_vector_type(8)));
 
 
 __device__ void mma_f32f16_16_16_16_gfx12_(float* data) {
-    constexpr int M = 16, N = 16;
     half_t_8 am = { 0.01 };
     half_t_8 bm = { 0.02 };
     float_t_8 cm = { 0 };
@@ -29,12 +28,11 @@ __device__ void mma_f32f16_16_16_16_gfx12_(float* data) {
         cm = __builtin_amdgcn_wmma_f32_16x16x16_f16_w32_gfx12(am, bm, cm);
     }
 
-    int idx = threadIdx.y * M * N + threadIdx.x * sizeof(cm) / sizeof(cm[0]);
+    int idx = (threadIdx.y * blockDim.x  + threadIdx.x) * sizeof(cm) / sizeof(cm[0]);
     reinterpret_cast<decltype(cm)&>(data[idx]) = cm;
 }
 
 __device__ void mma_f32bf16_16_16_16_gfx12_(float* data) {
-    constexpr int M = 16, N = 16;
     bf16_t_8 am = { 0.01 };
     bf16_t_8 bm = { 0.02 };
     float_t_8 cm = { 0 };
@@ -43,12 +41,11 @@ __device__ void mma_f32bf16_16_16_16_gfx12_(float* data) {
         cm = __builtin_amdgcn_wmma_f32_16x16x16_bf16_w32_gfx12(am, bm, cm);
     }
 
-    int idx = threadIdx.y * M * N + threadIdx.x * sizeof(cm) / sizeof(cm[0]);
+    int idx = (threadIdx.y * blockDim.x + threadIdx.x) * sizeof(cm) / sizeof(cm[0]);
     reinterpret_cast<decltype(cm)&>(data[idx]) = cm;
 }
 
 __device__ void mma_f16f16_16_16_16_gfx12_(half* data) {
-    constexpr int M = 16, N = 16;
     half_t_8 am = { 0.01 };
     half_t_8 bm = { 0.02 };
     half_t_8 cm = { 0 };
@@ -57,12 +54,11 @@ __device__ void mma_f16f16_16_16_16_gfx12_(half* data) {
         cm = __builtin_amdgcn_wmma_f16_16x16x16_f16_w32_gfx12(am, bm, cm);
     }
 
-    int idx = threadIdx.y * M * N + threadIdx.x * sizeof(cm) / sizeof(cm[0]);
+    int idx = (threadIdx.y * blockDim.x + threadIdx.x) * sizeof(cm) / sizeof(cm[0]);
     reinterpret_cast<decltype(cm)&>(data[idx]) = cm;
 }
 
 __device__ void mma_bf16bf16_16_16_16_gfx12_(__hip_bfloat16* data) {
-    constexpr int M = 16, N = 16;
     bf16_t_8 am = { 0.01 };
     bf16_t_8 bm = { 0.02 };
     bf16_t_8 cm = { 0 };
@@ -71,12 +67,11 @@ __device__ void mma_bf16bf16_16_16_16_gfx12_(__hip_bfloat16* data) {
         cm = __builtin_amdgcn_wmma_bf16_16x16x16_bf16_w32_gfx12(am, bm, cm);
     }
 
-    int idx = threadIdx.y * M * N + threadIdx.x * sizeof(cm) / sizeof(cm[0]);
+    int idx = (threadIdx.y * blockDim.x + threadIdx.x) * sizeof(cm) / sizeof(cm[0]);
     reinterpret_cast<decltype(cm)&>(data[idx]) = cm;
 }
 
 __device__ void mma_i32i8_16_16_16_gfx12_(int32_t* data) {
-    constexpr int M = 16, N = 16;
     int8_t_8 am = { 1, 1, 1, 1, 1, 1, 1, 1 };
     int8_t_8 bm = { 1, -1, 1, -1, 1, -1, 1, -1 };
     int32_t_8 cm = { 0 };
@@ -85,12 +80,11 @@ __device__ void mma_i32i8_16_16_16_gfx12_(int32_t* data) {
         cm = __builtin_amdgcn_wmma_i32_16x16x16_iu8_w32_gfx12(true, am, true, bm, cm, true);
     }
 
-    int idx = threadIdx.y * M * N + threadIdx.x * sizeof(cm) / sizeof(cm[0]);
+    int idx = (threadIdx.y * blockDim.x + threadIdx.x) * sizeof(cm) / sizeof(cm[0]);
     reinterpret_cast<decltype(cm)&>(data[idx]) = cm;
 }
 
 __device__ void mma_i32i4_16_16_16_gfx12_(int32_t* data) {
-    constexpr int M = 16, N = 16;
     int32_t am = { 1 };
     int32_t bm = { -1 };
     int32_t_8 cm = { 0 };
@@ -99,12 +93,11 @@ __device__ void mma_i32i4_16_16_16_gfx12_(int32_t* data) {
         cm = __builtin_amdgcn_wmma_i32_16x16x16_iu4_w32_gfx12(true, am, true, bm, cm, true);
     }
 
-    int idx = threadIdx.y * M * N + threadIdx.x * sizeof(cm) / sizeof(cm[0]);
+    int idx = (threadIdx.y * blockDim.x + threadIdx.x) * sizeof(cm) / sizeof(cm[0]);
     reinterpret_cast<decltype(cm)&>(data[idx]) = cm;
 }
 
 __device__ void mma_f32f8_16_16_16_gfx12_(float* data) {
-    constexpr int M = 16, N = 16;
     fp8_t_8 am = { (__hip_fp8_storage_t)__hip_fp8_e4m3(0.01) };
     fp8_t_8 bm = { (__hip_fp8_storage_t)__hip_fp8_e4m3(0.02) };
     float_t_8 cm = { 0 };
@@ -113,7 +106,7 @@ __device__ void mma_f32f8_16_16_16_gfx12_(float* data) {
         cm = __builtin_amdgcn_wmma_f32_16x16x16_fp8_fp8_w32_gfx12(am, bm, cm);
     }
 
-    int idx = threadIdx.y * M * N + threadIdx.x * sizeof(cm) / sizeof(cm[0]);
+    int idx = (threadIdx.y * blockDim.x + threadIdx.x) * sizeof(cm) / sizeof(cm[0]);
     reinterpret_cast<decltype(cm)&>(data[idx]) = cm;
 }
 
@@ -127,7 +120,7 @@ __global__ void mma_f32f16_16_16_16_gfx12(void* data, int* rc) {
 }
 
 __global__ void mma_f32bf16_16_16_16_gfx12(void* data, int* rc) {
-    mma_f32f16_16_16_16_gfx12_((float*)data);
+    mma_f32bf16_16_16_16_gfx12_((float*)data);
     *rc = 0;
 }
 

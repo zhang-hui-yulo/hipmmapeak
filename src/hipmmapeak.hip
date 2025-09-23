@@ -1,3 +1,5 @@
+#include <sstream>
+#include <unordered_set>
 #include <hip/hip_runtime.h>
 #include "gfx11.h"
 #include "gfx12.h"
@@ -110,6 +112,15 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    std::unordered_set<std::string> arch_table;
+    {
+        std::stringstream archs(REQUIRED_HIP_ARCHITECTURES);
+        std::string arch;
+        while (archs >> arch) {
+            arch_table.emplace(arch);
+        }
+    }
+
     for (int i = 0; i < deviceCount; i++) {
         printf("----------------------------------------\n");
 
@@ -121,32 +132,36 @@ int main(int argc, char** argv) {
         printf("  Total global memory: %.1f GiB\n", prop.totalGlobalMem / (1024.0 * 1024.0 * 1024.0));
         printf("  Multiprocessor count: %d\n", prop.multiProcessorCount);
 
-        hipSetDevice(i);
-        hipCheckError();
+        if (arch_table.count(prop.gcnArchName)) {
+            hipSetDevice(i);
+            hipCheckError();
 
-        printf("Running benchmarks with target time: %.1f seconds\n", targetTime);
+            printf("Running benchmarks with target time: %.1f seconds\n", targetTime);
 
-        printf("\nRunning GFX12\n");
-        printf("mma_f32f16_16_16_16_gfx12\n");
-        run<float, 16, 16, 16>((void*)mma_f32f16_16_16_16_gfx12, targetTime);
-        //printf("mma_f32bf16_16_16_16_gfx12\n");
-        //run<float, 16, 16, 16>((void*)mma_f32bf16_16_16_16_gfx12, targetTime);
-        printf("mma_f16f16_16_16_16_gfx12\n");
-        run<half, 16, 16, 16>((void*)mma_f16f16_16_16_16_gfx12, targetTime);
-        printf("mma_bf16bf16_16_16_16_gfx12\n");
-        run<__hip_bfloat16, 16, 16, 16>((void*)mma_bf16bf16_16_16_16_gfx12, targetTime);
-        printf("mma_i32i8_16_16_16_gfx12\n");
-        run<int32_t, 16, 16, 16>((void*)mma_i32i8_16_16_16_gfx12, targetTime);
-        printf("mma_i32i4_16_16_16_gfx12\n");
-        run<int32_t, 16, 16, 16>((void*)mma_i32i4_16_16_16_gfx12, targetTime);
-        printf("mma_f32f8_16_16_16_gfx12\n");
-        run<int32_t, 16, 16, 16>((void*)mma_f32f8_16_16_16_gfx12, targetTime);
+            printf("\nRunning GFX12\n");
+            printf("mma_f32f16_16_16_16_gfx12\n");
+            run<float, 16, 16, 16>((void*)mma_f32f16_16_16_16_gfx12, targetTime);
+            //printf("mma_f32bf16_16_16_16_gfx12\n");
+            //run<float, 16, 16, 16>((void*)mma_f32bf16_16_16_16_gfx12, targetTime);
+            printf("mma_f16f16_16_16_16_gfx12\n");
+            run<half, 16, 16, 16>((void*)mma_f16f16_16_16_16_gfx12, targetTime);
+            printf("mma_bf16bf16_16_16_16_gfx12\n");
+            run<__hip_bfloat16, 16, 16, 16>((void*)mma_bf16bf16_16_16_16_gfx12, targetTime);
+            printf("mma_i32i8_16_16_16_gfx12\n");
+            run<int32_t, 16, 16, 16>((void*)mma_i32i8_16_16_16_gfx12, targetTime);
+            printf("mma_i32i4_16_16_16_gfx12\n");
+            run<int32_t, 16, 16, 16>((void*)mma_i32i4_16_16_16_gfx12, targetTime);
+            printf("mma_f32f8_16_16_16_gfx12\n");
+            run<int32_t, 16, 16, 16>((void*)mma_f32f8_16_16_16_gfx12, targetTime);
 
-        printf("\nRunning GFX11\n");
-        printf("mma_f32f16_16_16_16_gfx11\n");
-        run<float, 16, 16, 16>((void*)mma_f32f16_16_16_16_gfx11, targetTime);
-        printf("mma_i32i8_16_16_16_gfx11\n");
-        run<float, 16, 16, 16>((void*)mma_i32i8_16_16_16_gfx11, targetTime);
+            printf("\nRunning GFX11\n");
+            printf("mma_f32f16_16_16_16_gfx11\n");
+            run<float, 16, 16, 16>((void*)mma_f32f16_16_16_16_gfx11, targetTime);
+            printf("mma_i32i8_16_16_16_gfx11\n");
+            run<float, 16, 16, 16>((void*)mma_i32i8_16_16_16_gfx11, targetTime);
+        } else {
+            printf("No GPU binary for %s, please compile this architecture.", prop.gcnArchName);
+        }
     }
     return 0;
 }

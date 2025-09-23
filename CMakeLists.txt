@@ -8,11 +8,17 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_HIP_STANDARD 17)
 
 if(NOT DEFINED MMA_HIP_ARCHITECTURES)
-    set(MMA_HIP_ARCHITECTURES gfx1100;gfx1201;gfx1036)
+    set(MMA_HIP_ARCHITECTURES gfx1100;gfx1201)
 endif()
 
 add_executable(hipmmapeak
-    hipmmapeak.hip)
+    src/hipmmapeak.hip)
+
+string(REPLACE ";" " " REQUIRED_HIP_ARCHITECTURES "${MMA_HIP_ARCHITECTURES}")
+
+target_compile_definitions(hipmmapeak PRIVATE
+    REQUIRED_HIP_ARCHITECTURES="${REQUIRED_HIP_ARCHITECTURES}")
 
 set_target_properties(hipmmapeak PROPERTIES
     HIP_ARCHITECTURES "${MMA_HIP_ARCHITECTURES}")
+
