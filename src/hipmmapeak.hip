@@ -7,17 +7,14 @@
 #include "gfx12.h"
 
 
-/**
- * \brief Perror macro with exit
- */
 #if !defined(PEAK_ERROR_EXIT)
 #  define PEAK_ERROR_EXIT(e)                                         \
       do {                                                           \
-        hipError_t code = (e);                                      \
-        if (code != hipSuccess) {                                   \
+        hipError_t code = (e);                                       \
+        if (code != hipSuccess) {                                    \
           fprintf(stderr, "<%s:%d> %s:\n    %s: %s\n",               \
                   __FILE__, __LINE__, #e,                            \
-                  hipGetErrorName(code), hipGetErrorString(code)); \
+                  hipGetErrorName(code), hipGetErrorString(code));   \
           fflush(stderr);                                            \
           exit(1);                                                   \
         }                                                            \
@@ -33,14 +30,14 @@
 #endif
 
 
-class GPUTimer {
+class gpu_timer {
 public:
-    GPUTimer() {
+    gpu_timer() {
         PEAK_CHECK_ERROR(hipEventCreate(&_start));
         PEAK_CHECK_ERROR(hipEventCreate(&_stop));
     }
 
-    ~GPUTimer() {
+    ~gpu_timer() {
         if (_start) {
             PEAK_CHECK_ERROR(hipEventDestroy(_start));
         }
@@ -86,7 +83,7 @@ void run(void* kernel, float targetTime) {
     if (h_rc[0] != 0) {
         printf("not supported\n");
     } else {
-        GPUTimer timer;
+        gpu_timer timer;
         int n_loop = N_LOOP_CALIB;
         
         timer.start();
