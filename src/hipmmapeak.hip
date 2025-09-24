@@ -77,8 +77,8 @@ void run(void* kernel, float targetTime) {
     
     thrust::device_vector<OutputType> output(num_warps_per_tb * M * N);
     thrust::device_vector<int> d_rc(1, 0);
-    ((void (*)(void*, int*))kernel) <<< grid, block >>> (output.data().get(), d_rc.data().get());
-    thrust::host_vector<int> h_rc(1, 0);
+    ((void (*)(OutputType*, int*))kernel) <<< grid, block >>> (output.data().get(), d_rc.data().get());
+    thrust::host_vector<int> h_rc = d_rc;
 
     if (h_rc[0] != 0) {
         printf("not supported\n");
@@ -88,7 +88,7 @@ void run(void* kernel, float targetTime) {
         
         timer.start();
         for (int i = 0; i < n_loop; i++) {
-            ((void (*)(void*, int*))kernel) <<< grid, block >>> (output.data().get(), d_rc.data().get());
+            ((void (*)(OutputType*, int*))kernel) <<< grid, block >>> (output.data().get(), d_rc.data().get());
         }
         timer.stop();
         float ms = timer.elapsed();
@@ -99,7 +99,7 @@ void run(void* kernel, float targetTime) {
         timer.start();
         for (int i = 0; i < n_loop; i++)
         {
-            ((void (*)(void*, int*))kernel) <<< grid, block >>> (output.data().get(), d_rc.data().get());
+            ((void (*)(OutputType*, int*))kernel) <<< grid, block >>> (output.data().get(), d_rc.data().get());
         }
         timer.stop();
         ms = timer.elapsed();
@@ -184,15 +184,23 @@ int main(int argc, char** argv) {
             printf("mma_i32i4_16_16_16_gfx12\n");
             run<int32_t, 16, 16, 16>((void*)mma_i32i4_16_16_16_gfx12, targetTime);
             printf("mma_f32f8_16_16_16_gfx12\n");
-            run<int32_t, 16, 16, 16>((void*)mma_f32f8_16_16_16_gfx12, targetTime);
+            run<float, 16, 16, 16>((void*)mma_f32f8_16_16_16_gfx12, targetTime);
 
             printf("\nRunning GFX11\n");
             printf("mma_f32f16_16_16_16_gfx11\n");
             run<float, 16, 16, 16>((void*)mma_f32f16_16_16_16_gfx11, targetTime);
+            printf("mma_f32bf16_16_16_16_gfx11\n");
+            run<float, 16, 16, 16>((void*)mma_f32bf16_16_16_16_gfx11, targetTime);
+            printf("mma_f16f16_16_16_16_gfx11\n");
+            run<half2, 16, 16, 16>((void*)mma_f16f16_16_16_16_gfx11, targetTime);
+            printf("mma_bf16bf16_16_16_16_gfx11\n");
+            run<__hip_bfloat162, 16, 16, 16>((void*)mma_bf16bf16_16_16_16_gfx11, targetTime);
             printf("mma_i32i8_16_16_16_gfx11\n");
-            run<float, 16, 16, 16>((void*)mma_i32i8_16_16_16_gfx11, targetTime);
+            run<int32_t, 16, 16, 16>((void*)mma_i32i8_16_16_16_gfx11, targetTime);
+            printf("mma_i32i4_16_16_16_gfx11\n");
+            run<int32_t, 16, 16, 16>((void*)mma_i32i4_16_16_16_gfx11, targetTime);
         } else {
-            printf("No GPU binary for %s, please add this architecture into REQUIRED_HIP_ARCHITECTURES.", prop.gcnArchName);
+            printf("No GPU binary for %s, please add this architecture into MMA_HIP_ARCHITECTURES.", prop.gcnArchName);
         }
     }
     return 0;

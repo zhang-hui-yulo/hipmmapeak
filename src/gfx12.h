@@ -114,44 +114,44 @@ __device__ void mma_f32f8_16_16_16_gfx12_(float* data) {
 
 #if defined(__GFX12__)
 
-__global__ void mma_f32f16_16_16_16_gfx12(void* data, int* rc) {
-    mma_f32f16_16_16_16_gfx12_((float*)data);
+__global__ void mma_f32f16_16_16_16_gfx12(float* data, int* rc) {
+    mma_f32f16_16_16_16_gfx12_(data);
     *rc = 0;
 }
 
-__global__ void mma_f32bf16_16_16_16_gfx12(void* data, int* rc) {
-    mma_f32bf16_16_16_16_gfx12_((float*)data);
+__global__ void mma_f32bf16_16_16_16_gfx12(float* data, int* rc) {
+    mma_f32bf16_16_16_16_gfx12_(data);
     *rc = 0;
 }
 
-__global__ void mma_f16f16_16_16_16_gfx12(void* data, int* rc) {
-    mma_f16f16_16_16_16_gfx12_((half*)data);
+__global__ void mma_f16f16_16_16_16_gfx12(half* data, int* rc) {
+    mma_f16f16_16_16_16_gfx12_(data);
     *rc = 0;
 }
 
-__global__ void mma_bf16bf16_16_16_16_gfx12(void* data, int* rc) {
-    mma_bf16bf16_16_16_16_gfx12_((__hip_bfloat16*)data);
+__global__ void mma_bf16bf16_16_16_16_gfx12(__hip_bfloat16* data, int* rc) {
+    mma_bf16bf16_16_16_16_gfx12_(data);
     *rc = 0;
 }
 
-__global__ void mma_i32i8_16_16_16_gfx12(void* data, int* rc) {
-    mma_i32i8_16_16_16_gfx12_((int32_t*)data);
+__global__ void mma_i32i8_16_16_16_gfx12(int32_t* data, int* rc) {
+    mma_i32i8_16_16_16_gfx12_(data);
     *rc = 0;
 }
 
-__global__ void mma_i32i4_16_16_16_gfx12(void* data, int* rc) {
-    mma_i32i4_16_16_16_gfx12_((int32_t*)data);
+__global__ void mma_i32i4_16_16_16_gfx12(int32_t* data, int* rc) {
+    mma_i32i4_16_16_16_gfx12_(data);
     *rc = 0;
 }
 
-__global__ void mma_f32f8_16_16_16_gfx12(void* data, int* rc) {
-    mma_f32f8_16_16_16_gfx12_((float*)data);
+__global__ void mma_f32f8_16_16_16_gfx12(float* data, int* rc) {
+    mma_f32f8_16_16_16_gfx12_(data);
     *rc = 0;
 }
 
 #else
 
-__global__ void mma_f32f16_16_16_16_gfx12(void* data, int* rc) {
+__global__ void mma_f32f16_16_16_16_gfx12(float* data, int* rc) {
     *rc = 1;
 }
 
@@ -159,23 +159,23 @@ __global__ void mma_f32bf16_16_16_16_gfx12(float* data, int* rc) {
     *rc = 1;
 }
 
-__global__ void mma_f16f16_16_16_16_gfx12(void* data, int* rc) {
+__global__ void mma_f16f16_16_16_16_gfx12(half* data, int* rc) {
     *rc = 1;
 }
 
-__global__ void mma_bf16bf16_16_16_16_gfx12(void* data, int* rc) {
+__global__ void mma_bf16bf16_16_16_16_gfx12(__hip_bfloat16* data, int* rc) {
     *rc = 1;
 }
 
-__global__ void mma_i32i8_16_16_16_gfx12(void* data, int* rc) {
+__global__ void mma_i32i8_16_16_16_gfx12(int32_t* data, int* rc) {
     *rc = 1;
 }
 
-__global__ void mma_i32i4_16_16_16_gfx12(void* data, int* rc) {
+__global__ void mma_i32i4_16_16_16_gfx12(int32_t* data, int* rc) {
     *rc = 1;
 }
 
-__global__ void mma_f32f8_16_16_16_gfx12(void* data, int* rc) {
+__global__ void mma_f32f8_16_16_16_gfx12(float* data, int* rc) {
     *rc = 1;
 }
 
