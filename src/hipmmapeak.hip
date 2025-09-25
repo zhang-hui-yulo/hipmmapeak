@@ -68,10 +68,9 @@ private:
 };
 
 template <typename OutputType, unsigned M, unsigned N, unsigned K>
-void run(void* kernel, float targetTime) {
+void run(void* kernel, float targetTime, int warp_size) {
     constexpr int num_tb = 512;
     constexpr int num_warps_per_tb = 4;
-    constexpr int warp_size = 32;
     dim3 grid(num_tb);
     dim3 block(warp_size, num_warps_per_tb);
     
@@ -164,6 +163,7 @@ int main(int argc, char** argv) {
         printf("  Compute capability: %d.%d\n", prop.major, prop.minor);
         printf("  Total global memory: %.1f GiB\n", prop.totalGlobalMem / (1024.0 * 1024.0 * 1024.0));
         printf("  Multiprocessor count: %d\n", prop.multiProcessorCount);
+        printf("  Warp size: %i\n", prop.warpSize);
 
         if (arch_table.count(prop.gcnArchName)) {
             PEAK_CHECK_ERROR(hipSetDevice(i));
@@ -172,33 +172,36 @@ int main(int argc, char** argv) {
 
             printf("\nRunning GFX12\n");
             printf("mma_f32f16_16_16_16_gfx12\n");
-            run<float, 16, 16, 16>((void*)mma_f32f16_16_16_16_gfx12, targetTime);
+            run<float, 16, 16, 16>((void*)mma_f32f16_16_16_16_gfx12, targetTime, prop.warpSize);
             printf("mma_f32bf16_16_16_16_gfx12\n");
-            run<float, 16, 16, 16>((void*)mma_f32bf16_16_16_16_gfx12, targetTime);
+            run<float, 16, 16, 16>((void*)mma_f32bf16_16_16_16_gfx12, targetTime, prop.warpSize);
             printf("mma_f16f16_16_16_16_gfx12\n");
-            run<half, 16, 16, 16>((void*)mma_f16f16_16_16_16_gfx12, targetTime);
+            run<half, 16, 16, 16>((void*)mma_f16f16_16_16_16_gfx12, targetTime, prop.warpSize);
             printf("mma_bf16bf16_16_16_16_gfx12\n");
-            run<__hip_bfloat16, 16, 16, 16>((void*)mma_bf16bf16_16_16_16_gfx12, targetTime);
+            run<__hip_bfloat16, 16, 16, 16>((void*)mma_bf16bf16_16_16_16_gfx12, targetTime, prop.warpSize);
             printf("mma_i32i8_16_16_16_gfx12\n");
-            run<int32_t, 16, 16, 16>((void*)mma_i32i8_16_16_16_gfx12, targetTime);
-            printf("mma_i32i4_16_16_16_gfx12\n");
-            run<int32_t, 16, 16, 16>((void*)mma_i32i4_16_16_16_gfx12, targetTime);
+            run<int32_t, 16, 16, 16>((void*)mma_i32i8_16_16_16_gfx12, targetTime, prop.warpSize);
+            // https://github.com/ROCm/ROCm/issues/5424
+            //printf("mma_i32i4_16_16_16_gfx12\n");
+            //run<int32_t, 16, 16, 16>((void*)mma_i32i4_16_16_16_gfx12, targetTime, prop.warpSize);
             printf("mma_f32f8_16_16_16_gfx12\n");
-            run<float, 16, 16, 16>((void*)mma_f32f8_16_16_16_gfx12, targetTime);
+            run<float, 16, 16, 16>((void*)mma_f32f8_16_16_16_gfx12, targetTime, prop.warpSize);
+            printf("mma_f32bf8_16_16_16_gfx12\n");
+            run<float, 16, 16, 16>((void*)mma_f32bf8_16_16_16_gfx12, targetTime, prop.warpSize);
 
             printf("\nRunning GFX11\n");
             printf("mma_f32f16_16_16_16_gfx11\n");
-            run<float, 16, 16, 16>((void*)mma_f32f16_16_16_16_gfx11, targetTime);
+            run<float, 16, 16, 16>((void*)mma_f32f16_16_16_16_gfx11, targetTime, prop.warpSize);
             printf("mma_f32bf16_16_16_16_gfx11\n");
-            run<float, 16, 16, 16>((void*)mma_f32bf16_16_16_16_gfx11, targetTime);
+            run<float, 16, 16, 16>((void*)mma_f32bf16_16_16_16_gfx11, targetTime, prop.warpSize);
             printf("mma_f16f16_16_16_16_gfx11\n");
-            run<half2, 16, 16, 16>((void*)mma_f16f16_16_16_16_gfx11, targetTime);
+            run<half2, 16, 16, 16>((void*)mma_f16f16_16_16_16_gfx11, targetTime, prop.warpSize);
             printf("mma_bf16bf16_16_16_16_gfx11\n");
-            run<__hip_bfloat162, 16, 16, 16>((void*)mma_bf16bf16_16_16_16_gfx11, targetTime);
+            run<__hip_bfloat162, 16, 16, 16>((void*)mma_bf16bf16_16_16_16_gfx11, targetTime, prop.warpSize);
             printf("mma_i32i8_16_16_16_gfx11\n");
-            run<int32_t, 16, 16, 16>((void*)mma_i32i8_16_16_16_gfx11, targetTime);
+            run<int32_t, 16, 16, 16>((void*)mma_i32i8_16_16_16_gfx11, targetTime, prop.warpSize);
             printf("mma_i32i4_16_16_16_gfx11\n");
-            run<int32_t, 16, 16, 16>((void*)mma_i32i4_16_16_16_gfx11, targetTime);
+            run<int32_t, 16, 16, 16>((void*)mma_i32i4_16_16_16_gfx11, targetTime, prop.warpSize);
         } else {
             printf("No GPU binary for %s, please add this architecture into MMA_HIP_ARCHITECTURES.", prop.gcnArchName);
         }

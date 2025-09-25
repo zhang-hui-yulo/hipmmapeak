@@ -110,6 +110,19 @@ __device__ void mma_f32f8_16_16_16_gfx12_(float* data) {
     reinterpret_cast<decltype(cm)&>(data[idx]) = cm;
 }
 
+__device__ void mma_f32bf8_16_16_16_gfx12_(float* data) {
+    fp8_t_8 am = { (__hip_fp8_storage_t)__hip_fp8_e4m3(0.01) };
+    fp8_t_8 bm = { (__hip_fp8_storage_t)__hip_fp8_e4m3(0.02) };
+    float_t_8 cm = { 0 };
+
+    for (int k = 0; k < N_LOOP_INTERNAL; k++) {
+        cm = __builtin_amdgcn_wmma_f32_16x16x16_bf8_bf8_w32_gfx12(am, bm, cm);
+    }
+
+    int idx = (threadIdx.y * blockDim.x + threadIdx.x) * sizeof(cm) / sizeof(cm[0]);
+    reinterpret_cast<decltype(cm)&>(data[idx]) = cm;
+}
+
 #endif
 
 #if defined(__GFX12__)
@@ -149,6 +162,11 @@ __global__ void mma_f32f8_16_16_16_gfx12(float* data, int* rc) {
     *rc = 0;
 }
 
+__global__ void mma_f32bf8_16_16_16_gfx12(float* data, int* rc) {
+    mma_f32bf8_16_16_16_gfx12_(data);
+    *rc = 0;
+}
+
 #else
 
 __global__ void mma_f32f16_16_16_16_gfx12(float* data, int* rc) {
@@ -176,6 +194,10 @@ __global__ void mma_i32i4_16_16_16_gfx12(int32_t* data, int* rc) {
 }
 
 __global__ void mma_f32f8_16_16_16_gfx12(float* data, int* rc) {
+    *rc = 1;
+}
+
+__global__ void mma_f32bf8_16_16_16_gfx12(float* data, int* rc) {
     *rc = 1;
 }
 
