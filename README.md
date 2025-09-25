@@ -46,7 +46,7 @@ Please use ROCm Toolkit version 6.4.2 (or later).
 
 ## Compatibility
 
-MMA operations that are not supported on your hardware will display "not supported".
+MMA operations that are not supported on your hardware will display "not supported", suggest to clean reinstall the driver with DDU to avoid weird bugs in driver cache.
 
 ## Architecture Support
 

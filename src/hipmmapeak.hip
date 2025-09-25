@@ -173,8 +173,8 @@ int main(int argc, char** argv) {
             printf("\nRunning GFX12\n");
             printf("mma_f32f16_16_16_16_gfx12\n");
             run<float, 16, 16, 16>((void*)mma_f32f16_16_16_16_gfx12, targetTime);
-            //printf("mma_f32bf16_16_16_16_gfx12\n");
-            //run<float, 16, 16, 16>((void*)mma_f32bf16_16_16_16_gfx12, targetTime);
+            printf("mma_f32bf16_16_16_16_gfx12\n");
+            run<float, 16, 16, 16>((void*)mma_f32bf16_16_16_16_gfx12, targetTime);
             printf("mma_f16f16_16_16_16_gfx12\n");
             run<half, 16, 16, 16>((void*)mma_f16f16_16_16_16_gfx12, targetTime);
             printf("mma_bf16bf16_16_16_16_gfx12\n");
