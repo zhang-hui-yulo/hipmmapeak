@@ -85,8 +85,8 @@ __device__ void mma_i32i8_16_16_16_gfx12_(int32_t* data) {
 }
 
 __device__ void mma_i32i4_16_16_16_gfx12_(int32_t* data) {
-    int32_t am = { 1 };
-    int32_t bm = { -1 };
+    int32_t am = { 0x1F1F1F1F };
+    int32_t bm = { 0x12111111 };
     int32_t_8 cm = { 0 };
 
     for (int k = 0; k < N_LOOP_INTERNAL; k++) {

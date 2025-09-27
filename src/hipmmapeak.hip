@@ -181,9 +181,8 @@ int main(int argc, char** argv) {
             run<__hip_bfloat16, 16, 16, 16>((void*)mma_bf16bf16_16_16_16_gfx12, targetTime, prop.warpSize);
             printf("mma_i32i8_16_16_16_gfx12\n");
             run<int32_t, 16, 16, 16>((void*)mma_i32i8_16_16_16_gfx12, targetTime, prop.warpSize);
-            // https://github.com/ROCm/ROCm/issues/5424
-            //printf("mma_i32i4_16_16_16_gfx12\n");
-            //run<int32_t, 16, 16, 16>((void*)mma_i32i4_16_16_16_gfx12, targetTime, prop.warpSize);
+            printf("mma_i32i4_16_16_16_gfx12\n");
+            run<int32_t, 16, 16, 16>((void*)mma_i32i4_16_16_16_gfx12, targetTime, prop.warpSize);
             printf("mma_f32f8_16_16_16_gfx12\n");
             run<float, 16, 16, 16>((void*)mma_f32f8_16_16_16_gfx12, targetTime, prop.warpSize);
             printf("mma_f32bf8_16_16_16_gfx12\n");
